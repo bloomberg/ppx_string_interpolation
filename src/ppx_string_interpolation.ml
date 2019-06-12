@@ -1,6 +1,6 @@
 open Ppxlib
 
-open Parse_string
+open Parse_string_vf
 
 let expand ~(loc:Location.t) ~(path:string) (str:string) : expression =
   let ast = parse_string str in
