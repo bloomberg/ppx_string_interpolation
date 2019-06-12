@@ -1,0 +1,10 @@
+(library
+  (name ppx_string_interpolation)
+  (public_name ppx_string_interpolation)
+  (kind ppx_rewriter)
+  (libraries ppxlib ppxlib.metaquot compiler-libs sedlex)
+  (preprocess (pps ppxlib.metaquot sedlex.ppx)))
+
+(env
+  (dev
+    (flags (:standard -warn-error -A))))

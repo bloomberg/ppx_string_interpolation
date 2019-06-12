@@ -1,0 +1,19 @@
+opam-version: "1.2"
+maintainer: "@gmail.com"
+authors: [""]
+homepage: "https://github.com/ksromanov/ppx_string_interpolation"
+bug-reports: "https://github.com/ksromanov/ppx_string_interpolation/issues"
+dev-repo: "git+https://github.com/ksromanov/ppx_string_interpolation.git"
+license: "Apache-2.0"
+description: "Nothing."
+
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+
+depends: [
+  "dune" {build}
+  "ppxlib" {build}
+]
+available: [ ocaml-version >= "4.03.0" ]

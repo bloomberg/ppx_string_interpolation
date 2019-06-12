@@ -1,0 +1,4 @@
+(library
+  (name ppx_string_interpolation_test)
+  (inline_tests)
+  (preprocess (pps ppx_jane ppx_string_interpolation)))
