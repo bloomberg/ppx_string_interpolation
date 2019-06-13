@@ -170,48 +170,6 @@ let parse_string_to_prefix_expression str =
 
 let str = "$Unix.getenv"
 
-let prefix_expressions_to_ast (prefix, expressions) =
-    let op_concat = let open Longident in
-        Parsetree.{
-            pexp_desc = Pexp_ident {txt = Lident "^"; loc = Location.none};
-            pexp_loc = Location.none;
-            pexp_attributes = []
-        } in
-    let sprintf = let open Longident in
-        Parsetree.{
-            pexp_desc = Pexp_ident {txt = Ldot (Lident "Printf", "sprintf"); loc = Location.none};
-            pexp_loc = Location.none;
-            pexp_attributes = []
-        } in
-    let args = List.map
-                    (fun (e, _) -> (Asttypes.Nolabel, Parse.expression (Lexing.from_string e)))
-                    expressions in
-    let format_str =
-        let joined = String.concat "" @@ List.map snd expressions in
-        Parsetree.{
-            pexp_desc = Pexp_constant (Pconst_string (joined, None));
-            pexp_loc = Location.none;
-            pexp_attributes = []
-        } in
-    let apply func args =
-        Parsetree.{
-            pexp_desc = Pexp_apply (func, args);
-            pexp_loc = Location.none;
-            pexp_attributes = []
-        } in
-    let sprintf_applied = apply sprintf @@ (Asttypes.Nolabel,format_str)::args in
-    match prefix with
-    | None -> sprintf_applied
-    | Some prefix ->
-    (
-        let prefix = Parsetree.{
-            pexp_desc = Pexp_constant (Pconst_string (prefix, None));
-            pexp_loc = Location.none;
-            pexp_attributes = []
-        } in
-        match expressions with
-        | [] -> prefix
-        | _ -> apply op_concat [(Asttypes.Nolabel,prefix); (Asttypes.Nolabel,sprintf_applied)]
-    )
+let prefix_expressions_to_ast (prefix, expressions) = failwith "undefined"
 
-let parse_string str = parse_string_to_prefix_expression str |> prefix_expressions_to_ast
+let parse_string str = parse_string_to_prefix_expression str
