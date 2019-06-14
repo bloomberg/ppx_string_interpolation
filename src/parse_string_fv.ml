@@ -1,14 +1,16 @@
-module Parse_string_vf = struct
+module Parse_string_fv = struct
 (* Order Format - Value *)
 type token = String of string           (* String, which does not start with % and contain $ *)
            | StringWithFormat of string (* String, which starts with % *)
            | Expression of string       (* Expression to interpolate; contains both '(' and ')' *)
            | Variable of string         (* Name of variable, does not contain '(' and ')' *)
            | DollarChar                 (* Just a single '$' char, which comes from '$$' in raw string *)
+           | PercentChar                (* Just a single '%' char, which comes from '%%' in raw string *)
 
 let token_to_string = function String s     -> s
                              | StringWithFormat s -> "`" ^ s ^ "`"
                              | DollarChar   -> "$"
+                             | PercentChar  -> "%"
                              | Expression e -> "{" ^ e ^ "}"
                              | Variable v   -> "[" ^ v ^ "]"
 
@@ -22,16 +24,7 @@ let string_to_tokens str =
 
     let remove_head_char str = String.sub str 1 (String.length str - 1) in
 
-    (* here we rely on UTF8/single codepage encoding - first '%' should occupy only one char *)
-    let remove_double_percent = function
-        StringWithFormat str -> if String.length str > 1 && String.get str 1 = '%' then
-                                    String (remove_head_char str)
-                                else
-                                    StringWithFormat str
-      | x -> x
-    in
-
-    (* here we also rely on UTF8/single codepage similar to [remove_double_percent] *)
+    (* here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
     let convert_commented_out = function
         Expression e -> if String.length str >= 4 && String.get str 1 = '*' &&
                            String.get str (String.length str - 2) = '*' then
@@ -59,16 +52,17 @@ let string_to_tokens str =
         let longVarIdent = [%sedlex.regexp? Star (ident,'.'), lCaseIdent] in
 
         match%sedlex lexbuf with
-        | '%', Plus (Compl '$') -> fold (StringWithFormat (Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
-        | Plus (Compl '$')      -> fold (String           (Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
+        | '%', Plus (Compl ('$' | '%')) -> fold (StringWithFormat (Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
+        | Plus (Compl ('$' | '%'))  -> fold (String           (Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
         | "$$"                  -> fold (DollarChar::acc) lexbuf
+        | "%%"                  -> fold (PercentChar::acc) lexbuf
         | "$", longVarIdent     -> fold (Variable (remove_head_char @@ Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
         | "$(" -> fold (Expression (List.fold_left (^) "(" (read_expression [] 1 lexbuf))::acc) lexbuf
         | eof -> acc
         | "$", (Compl '$') -> failwith "Invalid character after $. Second $ is missing?"
         | _ -> failwith "Unhandled failure"
     in
-    List.rev_map convert_commented_out @@ List.map remove_double_percent @@ fold [] lexbuf
+    List.rev_map convert_commented_out @@ fold [] lexbuf
 
 (* Convert StringWithFormat, which is not prepended by Expression or Variable,
    so we do not need to escape '%'. *)

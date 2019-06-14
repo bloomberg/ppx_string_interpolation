@@ -23,8 +23,8 @@ let prefix_expressions_to_ast formatAfterVar (freeString, expressions) =
         Parsetree.{
             pexp_desc = Pexp_constant (Pconst_string (joined, None));
             pexp_loc = Location.none;
-            pexp_attributes = [Ast_mapper.attribute_of_warning Location.none
-                                "HelloIIII"]
+            pexp_attributes = [] (*[Ast_mapper.attribute_of_warning Location.none
+                                "Test warning"] *)
         } in
     let apply func args =
         Parsetree.{

@@ -1,7 +1,8 @@
 let%test _ = "HI" = "HI"
 
-let%test _ = [%string {|Hello!$(1)%d|}] = "Hello!1"
+let%test _ = [%string {|Hello!%d$(1)|}] = "Hello!1"
 
+(*
 let%test _ = "Hello!" ^ "1" = "Hello!1"
 
 let%test _ = [%string "Hello!$(1 + 2 + 3)%d"] = "Hello!6"
@@ -21,3 +22,4 @@ let%test _ = let l = "l" in
 
 let%test _ = let l = "*" in
     [%string {|$("(" ^ l ^ (* HI *) ")")|}] = "(*)"
+*)
