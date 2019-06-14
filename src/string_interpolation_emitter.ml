@@ -4,7 +4,7 @@ type token = String of string | Expression of string * string option
    This function works for both format before value "%f$var" and
    value before format "$var%f" (scala style).
 *)
-let prefix_expressions_to_ast formatAfterVar (freeString, expressions) =
+let generate formatAfterVar (freeString, expressions) =
     let op_concat = let open Longident in
         Parsetree.{
             pexp_desc = Pexp_ident {txt = Lident "^"; loc = Location.none};
