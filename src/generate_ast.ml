@@ -1,3 +1,5 @@
+type token = String of string | Expression of string * string option
+
 (* Convert list of expressions with formats to ast.
    This function works for both format before value "%f$var" and
    value before format "$var%f" (scala style).
