@@ -1,5 +1,5 @@
 module Parse_string_vf = struct
-(* Order Value - Format *)
+(* Order Format - Value *)
 type token = String of string           (* String, which does not start with % and contain $ *)
            | StringWithFormat of string (* String, which starts with % *)
            | Expression of string       (* Expression to interpolate; contains both '(' and ')' *)
