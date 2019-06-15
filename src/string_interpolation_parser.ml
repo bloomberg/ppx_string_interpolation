@@ -55,16 +55,34 @@ let string_to_tokens str =
     in
     List.rev @@ parse [] lexbuf
 
-(* Add %s formats to strings without them. *)
-let insert_default_formats = function [] -> []
-    | x::tokens -> let sFormat = Format "%s" in
-        let result = snd @@ List.fold_left
-        (fun (current, acc) y -> match current, y with
-                      | Variable _, String _
-                      | Expression _, String _ -> (y, y::sFormat::acc)
-                      | _ -> (y, y::acc)
-        ) (x, [x]) tokens in
-        List.rev result
+let _ = print_tokens @@ string_to_tokens "string1%f$var string2 $(expr)"; print_string "\n"
+
+(* Prepend expressions/variables without format with %s. *)
+let rec insert_default_formats tokens =
+    let run tokens =
+        let stringFmt = Format "%s" in
+            List.rev @@ Utils.fold_left2
+            (fun acc a b ->
+                match a, b with
+                | (Format _ as fmt, Expression _)
+                | (Format _ as fmt, Variable _) -> b::acc
+                | _, Expression _ -> b::stringFmt::acc
+                | _, Variable _ -> b::stringFmt::acc
+                | Format _, _ -> failwith "Format is not followed by expression or Variable. Second % is missing?"
+                | _ -> b::acc
+            ) [] tokens
+    in
+    match tokens with
+    | [] -> []
+    | (Expression _ as t)::_ -> Format "%s"::t::run tokens
+    | (  Variable _ as t)::_ -> Format "%s"::t::run tokens
+    | t::_ -> t::run tokens
+
+let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "string1%f$var string2 $(expr)"; print_string "\n"
+
+let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "%f$var string2 $(expr)"; print_string "\n"
+let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "$(expr)"; print_string "\n"
+let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "%%$var"; print_string "\n"
 
 (* Join several consecutive strings into one. *)
 let collapse_strings tokens =
@@ -91,7 +109,6 @@ let collapse_strings tokens =
     List.map join_strings_in_bucket @@
         Utils.bucket (fun a b -> is_string a && is_string b) tokens
 
-
 (* |||||||||||||||||||||||||||||| *)
 let aggregate_tokens tokens =
     let aggregate tokens = List.rev @@ Utils.fold_left2
@@ -110,7 +127,7 @@ let aggregate_tokens tokens =
 let parse_string str =
     let replace a b = List.map (fun x -> if x <> a then x else b) in
 
-    string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%") 
+    string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%")
         |> insert_default_formats |> collapse_strings |> aggregate_tokens
 
 end

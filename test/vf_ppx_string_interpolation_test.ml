@@ -1,5 +1,6 @@
 let%test _ = "HI" = "HI"
 
+(*
 let%test _ = [%stringVF {|Hello!$(1)%d|}] = "Hello!1"
 
 let%test _ = "Hello!" ^ "1" = "Hello!1"
@@ -21,4 +22,4 @@ let%test _ = let l = "l" in
 
 let%test _ = let l = "*" in
     [%stringVF {|$("(" ^ l ^ (* HI *) ")")|}] = "(*)"
-
+*)
