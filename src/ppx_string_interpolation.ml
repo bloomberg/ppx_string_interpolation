@@ -14,6 +14,7 @@ let extension = Extension.declare "string"
 let () = Ppxlib.Driver.register_transformation "string_interpolation"
                               ~rules:[Context_free.Rule.extension extension]
 
+(*
 (* Now registering Value Format transformations -- remove later *)
 let expand ~(loc:Location.t) ~(path:string) (str:string) : expression =
   let parsed = String_interpolation_parser_vf.Parser.parse_string str in
@@ -28,3 +29,4 @@ let extension = Extension.declare "stringVF"
 
 let () = Ppxlib.Driver.register_transformation "string_interpolationValueFormat"
                               ~rules:[Context_free.Rule.extension extension]
+*)

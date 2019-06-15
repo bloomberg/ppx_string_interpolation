@@ -1,8 +1,7 @@
 module Parser = struct
 
-(* Order Format - Value *)
-type token = String of string           (* String, which does not start with % and contain $ *)
-           | Format of string (* String, which starts with % *)
+type token = String of string           (* Plain string, does not start with % and contain $ *)
+           | Format of string           (* String, which starts with % and is treated as prinf-like format string *)
            | Expression of string       (* Expression to interpolate; contains both '(' and ')' *)
            | Variable of string         (* Name of variable, does not contain '(' and ')' *)
            | DollarChar                 (* Just a single '$' char, which comes from '$$' in raw string *)
@@ -17,23 +16,11 @@ let token_to_string = function String s     -> s
 
 let print_tokens = List.iter (fun p -> print_string (token_to_string p))
 
-
-(** Parse string, producing a list of tokens. We also transform '%%' after expression
-    to single '%' and convert commented out expressions to strings. *)
+(** Parse string, producing a list of tokens from this module. *)
 let string_to_tokens str =
     let lexbuf = Sedlexing.Utf8.from_string str in
 
     let remove_head_char str = String.sub str 1 (String.length str - 1) in
-
-    (* here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
-    let convert_commented_out = function
-        Expression e -> if String.length str >= 4 && String.get str 1 = '*' &&
-                           String.get str (String.length str - 2) = '*' then
-                            String ("$" ^ e)
-                        else
-                            Expression e
-      | x -> x
-    in
 
     (* TODO: take into account comments/strings of both syntaxes, which can contain parentheses! *)
     let rec parse_expression acc level lexbuf =
@@ -66,22 +53,7 @@ let string_to_tokens str =
         | '$' -> failwith "Single $. Another $ is missing?"
         | _ -> failwith "Unhandled failure"
     in
-    List.rev_map convert_commented_out @@ parse [] lexbuf
-
-(* Convert Format, which is not prepended by Expression or Variable,
-   so we do not need to escape '%'. *)
-let unmark_format tokens =
-    List.rev @@ snd @@ List.fold_left
-        (fun (current, tokens) token ->
-            match current, token with
-            | (  Variable _, Format _)
-            | (Expression _, Format _) -> (token, token::tokens)
-
-            | (_, Format str) -> (token, (String str)::tokens)
-
-            | _ -> (token, token::tokens)
-        )
-        (DollarChar, []) tokens
+    List.rev @@ parse [] lexbuf
 
 (* Add %s formats to strings without them. *)
 let insert_default_formats = function [] -> []
@@ -92,30 +64,7 @@ let insert_default_formats = function [] -> []
                       | Expression _, String _ -> (y, y::sFormat::acc)
                       | _ -> (y, y::acc)
         ) (x, [x]) tokens in
-        List.rev (
-        match result with
-        | Expression _ :: _
-        | Variable _ :: _ -> sFormat::result
-        | _ -> result)
-
-(* See Haskell/Data.List.span *)
-let span pred lst =
-    let rec iter acc = function
-        | x::tail when pred x -> iter (x::acc) tail
-        | lst                 -> List.rev acc, lst
-    in
-    iter [] lst
-
-(* Takes pred2 : 'a -> 'a -> bool and traverses list, assembling
-   list of pairs (x, [items right after x, for which pred2 x i is true]).
- *)
-let bucket pred2 lst =
-    let rec iter acc = function
-        | [] -> List.rev acc
-        | x::tail -> let (matches, rest) = span (pred2 x) tail in
-                     iter ((x, matches) :: acc) rest
-    in
-    iter [] lst
+        List.rev result
 
 (* Join several consecutive strings into one. *)
 let collapse_strings tokens =
@@ -140,16 +89,12 @@ let collapse_strings tokens =
                              | _ -> false
     in
     List.map join_strings_in_bucket @@
-        bucket (fun a b -> is_string a && is_string b) tokens
+        Utils.bucket (fun a b -> is_string a && is_string b) tokens
 
-(* ----------------- *)
-let rec fold_left2 f acc = function [] -> acc
-                                  | [_] -> acc
-                                  | a::b::tail -> fold_left2 f (f acc a b) (b::tail)
 
 (* |||||||||||||||||||||||||||||| *)
 let aggregate_tokens tokens =
-    let aggregate tokens = List.rev @@ fold_left2
+    let aggregate tokens = List.rev @@ Utils.fold_left2
         (fun acc a b ->
             match a, b with
             | Variable v, Format str -> (v, str)::acc
@@ -162,11 +107,10 @@ let aggregate_tokens tokens =
     | (Format _)::_ -> failwith "FAILURE, internal error"
     | _ -> (None, aggregate tokens)
 
-let parse_string_to_prefix_expression str =
+let parse_string str =
     let replace a b = List.map (fun x -> if x <> a then x else b) in
-    string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%") 
-        |> unmark_format |> insert_default_formats |> collapse_strings |> aggregate_tokens
 
-let parse_string str = parse_string_to_prefix_expression str
+    string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%") 
+        |> insert_default_formats |> collapse_strings |> aggregate_tokens
 
 end

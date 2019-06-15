@@ -1,5 +1,16 @@
 type token = String of string | Expression of string * string option
 
+(* here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
+let convert_commented_out = function
+    Expression (str, fmt) -> if String.length str >= 4 && String.get str 1 = '*' &&
+                       String.get str (String.length str - 2) = '*' then
+                       match fmt with
+                       | Some fmt -> String (fmt ^ "$" ^ str)
+                       | None -> String ("$" ^ str)
+                    else
+                        Expression (str, fmt)
+  | x -> x
+
 (* Convert list of expressions with formats to ast.
    This function works for both format before value "%f$var" and
    value before format "$var%f" (scala style).
