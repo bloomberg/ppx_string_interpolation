@@ -14,11 +14,20 @@ let token_to_string = function String s     -> s
                              | Expression e -> "{" ^ e ^ "}"
                              | Variable v   -> "[" ^ v ^ "]"
 
-let print_tokens = List.iter (fun p -> print_string (token_to_string p))
+let print_tokens = List.iter (fun (p, _) -> print_string (token_to_string p))
 
 (** Parse string, producing a list of tokens from this module. *)
 let string_to_tokens str =
     let lexbuf = Sedlexing.Utf8.from_string str in
+
+    let loc (lexbuf : Sedlexing.lexbuf) =
+        let (loc_start, loc_end) = Sedlexing.lexing_positions lexbuf in
+        Location.{
+            loc_start = loc_start;
+            loc_end = loc_end;
+            loc_ghost = false;
+        }
+    in
 
     let remove_head_char str = String.sub str 1 (String.length str - 1) in
 
@@ -40,13 +49,14 @@ let string_to_tokens str =
         let longVarIdent = [%sedlex.regexp? Star (ident,'.'), lCaseIdent] in
 
         match%sedlex lexbuf with
-        | "$$" -> parse (DollarChar::acc) lexbuf
-        | "%%" -> parse (PercentChar::acc) lexbuf
-        | '%', Plus (Compl ('$' | '%')) -> parse (Format (Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
-        | Plus (Compl ('$' | '%'))      -> parse (String           (Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
-        | "$", longVarIdent -> parse (Variable (remove_head_char @@ Sedlexing.Utf8.lexeme lexbuf)::acc) lexbuf
-        | "$(" -> parse (Expression (List.fold_left (^) "(" (parse_expression [] 1 lexbuf))::acc) lexbuf
+        | "$$" -> parse ((DollarChar, loc lexbuf)::acc) lexbuf
+        | "%%" -> parse ((PercentChar, loc lexbuf)::acc) lexbuf
+        | '%', Plus (Compl ('$' | '%')) -> parse ((Format (Sedlexing.Utf8.lexeme lexbuf), loc lexbuf)::acc) lexbuf
+        | Plus (Compl ('$' | '%'))      -> parse ((String (Sedlexing.Utf8.lexeme lexbuf), loc lexbuf)::acc) lexbuf
+        | "$", longVarIdent -> parse ((Variable (remove_head_char @@ Sedlexing.Utf8.lexeme lexbuf), loc lexbuf)::acc) lexbuf
+        | "$(" -> parse ((Expression (List.fold_left (^) "(" (parse_expression [] 1 lexbuf)), loc lexbuf)::acc) lexbuf
         | eof -> acc
+
         | "$", (Compl '$') -> failwith "Invalid character after $. Second $ is missing?"
         | "%$" -> failwith "Empty format. Another % is missing?"
         | '%' -> failwith "Single %. Another % is missing?"
@@ -77,12 +87,14 @@ let rec insert_default_formats tokens =
     | (Expression _ as t)::_ -> Format "%s"::t::run tokens
     | (  Variable _ as t)::_ -> Format "%s"::t::run tokens
     | t::_ -> t::run tokens
-
+(*
 let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "string1%f$var string2 $(expr)"; print_string "\n"
 
 let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "%f$var string2 $(expr)"; print_string "\n"
 let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "$(expr)"; print_string "\n"
 let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "%%$var"; print_string "\n"
+let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "$(expr)$$%%$var"; print_string "\n"
+*)
 
 (* Join several consecutive strings into one. *)
 let collapse_strings tokens =
@@ -127,7 +139,7 @@ let aggregate_tokens tokens =
 let parse_string str =
     let replace a b = List.map (fun x -> if x <> a then x else b) in
 
-    string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%")
+    string_to_tokens str |> List.map fst |> replace DollarChar (String "$") |> replace PercentChar (String "%%")
         |> insert_default_formats |> collapse_strings |> aggregate_tokens
 
 end
