@@ -1,5 +1,3 @@
-module Parser = struct
-
 type token = String of string           (* Plain string, does not start with % and contain $ *)
            | Format of string           (* String, which starts with % and is treated as prinf-like format string *)
            | Expression of string       (* Expression to interpolate; contains both '(' and ')' *)
@@ -15,6 +13,13 @@ let token_to_string = function String s     -> s
                              | Variable v   -> "[" ^ v ^ "]"
 
 let print_tokens = List.iter (fun (p, _) -> print_string (token_to_string p))
+
+exception ParseStringError of Lexing.position*string
+
+let raise_error lexbuf msg =
+    raise (ParseStringError (fst @@ (Sedlexing.lexing_positions lexbuf), msg))
+
+module Parser = struct
 
 (** Parse string, producing a list of tokens from this module. *)
 let string_to_tokens str =
@@ -39,7 +44,7 @@ let string_to_tokens str =
                                         parse_expression (Sedlexing.Utf8.lexeme lexbuf::acc) (level - 1) lexbuf
                                       else
                                         List.rev @@ Sedlexing.Utf8.lexeme lexbuf::acc
-        | _ -> failwith "Incomplete expression (unmatched parentheses)..."
+        | _ -> raise_error lexbuf "Incomplete expression (unmatched parentheses)..."
     in
 
     let rec parse acc lexbuf =
@@ -57,15 +62,18 @@ let string_to_tokens str =
         | "$(" -> parse ((Expression (List.fold_left (^) "(" (parse_expression [] 1 lexbuf)), loc lexbuf)::acc) lexbuf
         | eof -> acc
 
-        | "$", (Compl '$') -> failwith "Invalid character after $. Second $ is missing?"
-        | "%$" -> failwith "Empty format. Another % is missing?"
-        | '%' -> failwith "Single %. Another % is missing?"
-        | '$' -> failwith "Single $. Another $ is missing?"
-        | _ -> failwith "Unhandled failure"
+        | "$", (Compl '$') -> raise_error lexbuf "Invalid character after $. Second $ is missing?"
+        | "%$" -> raise_error lexbuf "Empty format. Another % is missing?"
+        | '%' -> raise_error lexbuf "Single %. Another % is missing?"
+        | '$' -> raise_error lexbuf "Single $. Another $ is missing?"
+        | _ -> raise_error lexbuf "Internal error in 'string_to_tokens'"
     in
     List.rev @@ parse [] lexbuf
 
 let _ = print_tokens @@ string_to_tokens "string1%f$var string2 $(expr)"; print_string "\n"
+(*
+let _ = print_tokens @@ string_to_tokens "$?"; print_string "\n"
+*)
 
 (* Prepend expressions/variables without format with %s. *)
 let rec insert_default_formats tokens =
@@ -136,10 +144,31 @@ let aggregate_tokens tokens =
     | (Format _)::_ -> failwith "FAILURE, internal error"
     | _ -> (None, aggregate tokens)
 
-let parse_string str =
-    let replace a b = List.map (fun x -> if x <> a then x else b) in
+let rec insert_default_formats tokens =
+    let run tokens =
+        let stringFmt = Format "%s" in
+            List.rev @@ Utils.fold_left2
+            (fun acc a b ->
+                match a, b with
+                | (Format _ as fmt, Expression _)
+                | (Format _ as fmt, Variable _) -> b::acc
+                | _, Expression _ -> b::stringFmt::acc
+                | _, Variable _ -> b::stringFmt::acc
+                | Format _, _ -> failwith "Format is not followed by expression or Variable. Second % is missing?"
+                | _ -> b::acc
+            ) [] tokens
+    in
+    match tokens with
+    | [] -> []
+    | (Expression _ as t)::_ -> Format "%s"::t::run tokens
+    | (  Variable _ as t)::_ -> Format "%s"::t::run tokens
+    | t::_ -> t::run tokens
 
-    string_to_tokens str |> List.map fst |> replace DollarChar (String "$") |> replace PercentChar (String "%%")
+let from_string str =
+    let replace a b = List.map (fun (x, loc) -> if x <> a then (x, loc) else (b, loc)) in
+
+    string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%")
+(*
         |> insert_default_formats |> collapse_strings |> aggregate_tokens
-
+*)
 end
