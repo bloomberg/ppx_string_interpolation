@@ -22,7 +22,7 @@ let raise_error lexbuf msg =
 module Parser = struct
 
 (** Parse string, producing a list of tokens from this module. *)
-let string_to_tokens str =
+let from_string str =
     let lexbuf = Sedlexing.Utf8.from_string str in
 
     let loc (lexbuf : Sedlexing.lexbuf) =
@@ -69,9 +69,4 @@ let string_to_tokens str =
         | _ -> raise_error lexbuf "Internal error in 'string_to_tokens'"
     in
     List.rev @@ parse [] lexbuf
-
-let from_string str =
-    let replace a b = List.map (fun (x, loc) -> if x <> a then (x, loc) else (b, loc)) in
-
-    string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%")
 end
