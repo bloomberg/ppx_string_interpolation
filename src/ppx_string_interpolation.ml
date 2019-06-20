@@ -1,9 +1,11 @@
 open Ppxlib
+open Pprintast
 
 let expand ~(loc:Location.t) ~(path:string) (str:string) : expression =
   let parsed = Interpolation_parser.Parser.from_string str in
   let intermediate = Interpolation_intermediate.parser_to_emitter parsed in
   let ast = Interpolation_emitter.emit_ast intermediate in
+  Pprintast.expression Format.std_formatter ast;
   { pexp_desc = ast.pexp_desc;
     pexp_loc = Lexing.{ loc_start = dummy_pos; loc_end = dummy_pos; loc_ghost = false};
     pexp_attributes = []}

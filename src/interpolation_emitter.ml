@@ -3,7 +3,11 @@ type token = String of element
            | Expression of element*element option
            | Variable of element*element option
 
-type token_with_location = token*Location.t
+let token_to_string = function String (s,_) -> s
+                             | Expression ((e,_),_) -> "{" ^ e ^ "}"
+                             | Variable ((v,_),_)   -> "[" ^ v ^ "]"
+
+let print_tokens = List.iter (fun p -> print_string (token_to_string p))
 
 (* here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
 let convert_commented_out = function
@@ -25,7 +29,7 @@ let to_arguments tokens = List.rev @@ List.fold_left
 
 
 let to_format_string tokens =
-    let joined = String.concat "" @@ List.fold_left
+    let joined = String.concat "" @@ List.rev @@ List.fold_left
                 (fun acc token -> match token with
                     | Expression (_, Some (fmt, _)) -> fmt::acc
                     | Expression (_, None) -> "%s"::acc
