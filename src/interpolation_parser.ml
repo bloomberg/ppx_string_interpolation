@@ -129,46 +129,9 @@ let collapse_strings tokens =
     List.map join_strings_in_bucket @@
         Utils.bucket (fun a b -> is_string a && is_string b) tokens
 
-(* |||||||||||||||||||||||||||||| *)
-let aggregate_tokens tokens =
-    let aggregate tokens = List.rev @@ Utils.fold_left2
-        (fun acc a b ->
-            match a, b with
-            | Variable v, Format str -> (v, str)::acc
-            | Expression e, Format str -> (e, str)::acc
-            | _ -> acc
-        ) [] tokens
-    in
-    match tokens with
-    | (String str)::tokens -> (Some str, aggregate tokens)
-    | (Format _)::_ -> failwith "FAILURE, internal error"
-    | _ -> (None, aggregate tokens)
-
-let rec insert_default_formats tokens =
-    let run tokens =
-        let stringFmt = Format "%s" in
-            List.rev @@ Utils.fold_left2
-            (fun acc a b ->
-                match a, b with
-                | (Format _ as fmt, Expression _)
-                | (Format _ as fmt, Variable _) -> b::acc
-                | _, Expression _ -> b::stringFmt::acc
-                | _, Variable _ -> b::stringFmt::acc
-                | Format _, _ -> failwith "Format is not followed by expression or Variable. Second % is missing?"
-                | _ -> b::acc
-            ) [] tokens
-    in
-    match tokens with
-    | [] -> []
-    | (Expression _ as t)::_ -> Format "%s"::t::run tokens
-    | (  Variable _ as t)::_ -> Format "%s"::t::run tokens
-    | t::_ -> t::run tokens
 
 let from_string str =
     let replace a b = List.map (fun (x, loc) -> if x <> a then (x, loc) else (b, loc)) in
 
     string_to_tokens str |> replace DollarChar (String "$") |> replace PercentChar (String "%%")
-(*
-        |> insert_default_formats |> collapse_strings |> aggregate_tokens
-*)
 end
