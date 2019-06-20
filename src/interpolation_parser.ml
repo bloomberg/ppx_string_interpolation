@@ -71,9 +71,6 @@ let string_to_tokens str =
     List.rev @@ parse [] lexbuf
 
 let _ = print_tokens @@ string_to_tokens "string1%f$var string2 $(expr)"; print_string "\n"
-(*
-let _ = print_tokens @@ string_to_tokens "$?"; print_string "\n"
-*)
 
 (* Prepend expressions/variables without format with %s. *)
 let rec insert_default_formats tokens =
@@ -95,40 +92,6 @@ let rec insert_default_formats tokens =
     | (Expression _ as t)::_ -> Format "%s"::t::run tokens
     | (  Variable _ as t)::_ -> Format "%s"::t::run tokens
     | t::_ -> t::run tokens
-(*
-let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "string1%f$var string2 $(expr)"; print_string "\n"
-
-let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "%f$var string2 $(expr)"; print_string "\n"
-let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "$(expr)"; print_string "\n"
-let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "%%$var"; print_string "\n"
-let _ = print_tokens @@ insert_default_formats @@ string_to_tokens "$(expr)$$%%$var"; print_string "\n"
-*)
-
-(* Join several consecutive strings into one. *)
-let collapse_strings tokens =
-    let join_strings_in_bucket (a, lst) =
-        let unsafe_join (a, lst) =
-            let add_token_to_buf buf = function
-                | String str
-                | Format str -> Buffer.add_string buf str
-                | _ -> failwith "Internal error: unreachable point in collapse_strings."
-            in
-            let buf = Buffer.create 16 in
-            add_token_to_buf buf a;
-            List.iter (add_token_to_buf buf) lst;
-            Buffer.contents buf
-        in
-        match a with
-        | Format _ -> Format (unsafe_join (a, lst))
-        | String _ -> String (unsafe_join (a, lst))
-        | _ -> a
-    in
-    let is_string = function | String _ | Format _ -> true
-                             | _ -> false
-    in
-    List.map join_strings_in_bucket @@
-        Utils.bucket (fun a b -> is_string a && is_string b) tokens
-
 
 let from_string str =
     let replace a b = List.map (fun (x, loc) -> if x <> a then (x, loc) else (b, loc)) in
