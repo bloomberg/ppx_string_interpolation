@@ -67,7 +67,4 @@ let generate tokens =
     | args -> apply sprintf @@ (Asttypes.Nolabel,format_string)::args
 
 let emit_ast tokens =
-    print_string "----------------------------------------\n";
-    print_tokens tokens;
-    print_string "\n----------------------------------------\n";
     List.map convert_commented_out tokens |> generate
