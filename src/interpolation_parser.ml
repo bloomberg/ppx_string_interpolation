@@ -12,7 +12,7 @@ let token_to_string = function String s     -> s
                              | Expression e -> "{" ^ e ^ "}"
                              | Variable v   -> "[" ^ v ^ "]"
 
-let print_tokens = List.iter (fun (p, _) -> print_string (token_to_string p))
+let print_tokens tokens = List.iter (fun (p, _) -> print_string (token_to_string p)) tokens
 
 exception ParseStringError of Lexing.position*string
 
@@ -69,29 +69,6 @@ let string_to_tokens str =
         | _ -> raise_error lexbuf "Internal error in 'string_to_tokens'"
     in
     List.rev @@ parse [] lexbuf
-
-let _ = print_tokens @@ string_to_tokens "string1%f$var string2 $(expr)"; print_string "\n"
-
-(* Prepend expressions/variables without format with %s. *)
-let rec insert_default_formats tokens =
-    let run tokens =
-        let stringFmt = Format "%s" in
-            List.rev @@ Utils.fold_left2
-            (fun acc a b ->
-                match a, b with
-                | (Format _ as fmt, Expression _)
-                | (Format _ as fmt, Variable _) -> b::acc
-                | _, Expression _ -> b::stringFmt::acc
-                | _, Variable _ -> b::stringFmt::acc
-                | Format _, _ -> failwith "Format is not followed by expression or Variable. Second % is missing?"
-                | _ -> b::acc
-            ) [] tokens
-    in
-    match tokens with
-    | [] -> []
-    | (Expression _ as t)::_ -> Format "%s"::t::run tokens
-    | (  Variable _ as t)::_ -> Format "%s"::t::run tokens
-    | t::_ -> t::run tokens
 
 let from_string str =
     let replace a b = List.map (fun (x, loc) -> if x <> a then (x, loc) else (b, loc)) in
