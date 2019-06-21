@@ -2,7 +2,7 @@ open Ppxlib
 open Pprintast
 
 let expand ~(loc:Location.t) ~(path:string) (str:string) : expression =
-  let parsed = Interpolation_parser.Parser.from_string str in
+  let parsed = Interpolation_parser.Parser.from_string loc str in
   let intermediate = Interpolation_intermediate.parser_to_emitter parsed in
   let ast = Interpolation_emitter.emit_ast intermediate in
   Pprintast.expression Format.std_formatter ast;

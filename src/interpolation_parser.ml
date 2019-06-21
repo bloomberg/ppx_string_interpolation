@@ -22,14 +22,20 @@ let raise_error lexbuf msg =
 module Parser = struct
 
 (** Parse string, producing a list of tokens from this module. *)
-let from_string str =
+let from_string ~(payload_loc:Location.t) (str:string) =
     let lexbuf = Sedlexing.Utf8.from_string str in
 
     let loc (lexbuf : Sedlexing.lexbuf) =
+        let adjust base rel =
+            Lexing.{ pos_fname = base.pos_fname;
+                     pos_lnum = base.pos_lnum + rel.pos_lnum;
+                     pos_bol = base.pos_bol + rel.pos_bol;
+                     pos_cnum = base.pos_cnum + rel.pos_cnum; }
+        in
         let (loc_start, loc_end) = Sedlexing.lexing_positions lexbuf in
         Location.{
-            loc_start = loc_start;
-            loc_end = loc_end;
+            loc_start = adjust payload_loc.loc_start loc_start;
+            loc_end = adjust payload_loc.loc_start loc_end;
             loc_ghost = false;
         }
     in
