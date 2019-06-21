@@ -58,4 +58,4 @@ S /home/kromanov1/.opam/ocaml-base-compiler/lib/typerep
 S /home/kromanov1/.opam/ocaml-base-compiler/lib/variantslib
 S .
 FLG -ppx '/home/kromanov1/ppx_string_interpolation/_build/default/.ppx/585aaa55e6a42beb905115722c335668/ppx.exe --as-ppx --cookie '\''library-name="ppx_string_interpolation_test"'\'''
-FLG -open Ppx_string_interpolation_test__ -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
+FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs

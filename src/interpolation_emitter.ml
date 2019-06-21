@@ -9,17 +9,20 @@ let token_to_string = function String (s,_) -> s
 
 let print_tokens = List.iter (fun p -> print_string (token_to_string p))
 
-(* here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
+(* Convert commented out expression to a string.
+   Here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
 let convert_commented_out = function
-    Expression ((str, loc), fmt) -> if String.length str >= 4 && String.get str 1 = '*' &&
+  | Expression ((str, loc), fmt) ->
+        if String.length str >= 4 && String.get str 1 = '*' &&
                        String.get str (String.length str - 2) = '*' then
-                       match fmt with
-                       | Some (fmt, _) -> String (fmt ^ "$" ^ str, loc)
-                       | None -> String ("$" ^ str, loc)
-                    else
-                        Expression ((str, loc), fmt)
+            match fmt with
+            | Some (fmt, _) -> String (fmt ^ "$" ^ str, loc)
+            | None -> String ("$" ^ str, loc)
+        else
+            Expression ((str, loc), fmt)
   | x -> x
 
+(* Generate a list of sprintf arguments from tokens. *)
 let to_arguments tokens = List.rev @@ List.fold_left
     (fun acc token -> match token with
         | Expression ((e, _), _) -> (Asttypes.Nolabel, Parse.expression (Lexing.from_string e))::acc
@@ -27,7 +30,7 @@ let to_arguments tokens = List.rev @@ List.fold_left
         | _ -> acc
     ) [] tokens
 
-
+(* Generate format string for sprintf from tokens. *)
 let to_format_string tokens =
     let joined = String.concat "" @@ List.rev @@ List.fold_left
                 (fun acc token -> match token with
