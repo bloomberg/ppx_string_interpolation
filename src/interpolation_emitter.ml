@@ -44,14 +44,6 @@ let to_format_string tokens =
                     | String (s, _) -> s::acc
                 ) [] tokens in
     pexp_constant ~loc:Location.none (Pconst_string (joined, None))
-(*
-    Parsetree.{
-        pexp_desc = Pexp_constant (Pconst_string (joined, None));
-        pexp_loc = Location.none;
-        pexp_attributes = [] (*[Ast_mapper.attribute_of_warning Location.none
-                            "Test warning"] *)
-    }
-*)
 
 (* Convert list of expressions with formats to ast.
    This function works for both format before value "%f$var" and
@@ -59,20 +51,10 @@ let to_format_string tokens =
 *)
 let generate tokens =
     let sprintf = let open Longident in
-      pexp_ident ~loc:Location.none {txt = Ldot (Lident "Printf", "sprintf"); loc = Location.none}
-(*
-        Parsetree.{
-            pexp_desc = Pexp_ident {txt = Ldot (Lident "Printf", "sprintf"); loc = Location.none};
-            pexp_loc = Location.none;
-            pexp_attributes = []
-        } *)in
-    let apply func args =
-      pexp_apply ~loc:Location.none func args
-       (* Parsetree.{
-            pexp_desc = Pexp_apply (func, args);
-            pexp_loc = Location.none;
-            pexp_attributes = []
-        } *) in
+        pexp_ident ~loc:Location.none
+            {txt = Ldot (Lident "Printf", "sprintf"); loc = Location.none}
+    in
+    let apply func args = pexp_apply ~loc:Location.none func args in
     let format_string = to_format_string tokens in
     match to_arguments tokens with
     | [] -> format_string
