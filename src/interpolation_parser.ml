@@ -14,10 +14,11 @@ let token_to_string = function String s     -> s
 
 let print_tokens tokens = List.iter (fun (p, _) -> print_string (token_to_string p)) tokens
 
-exception ParseStringError of Lexing.position*string
+exception ParseStringError of Location.t*string
 
 let raise_error lexbuf msg =
-    raise (ParseStringError (fst @@ (Sedlexing.lexing_positions lexbuf), msg))
+    let (loc_start, loc_end) = Sedlexing.lexing_positions lexbuf in
+    raise (ParseStringError (Location.{loc_start; loc_end; loc_ghost = false}, msg))
 
 module Parser = struct
 

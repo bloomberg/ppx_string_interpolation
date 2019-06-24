@@ -12,7 +12,7 @@ let parser_to_emitter (tokens : (P.token*Location.t) list) : E.token list =
                     None, E.Expression ((e, loc), curr_fmt)::acc
             | P.Variable v, curr_fmt ->
                     None, E.Variable ((v, loc), curr_fmt)::acc
-            | _, Some (_, loc) -> raise (P.ParseStringError (loc.Location.loc_start, "Format is not followed by variable/expression. Missing %?"))
+            | _, Some (_, loc) -> raise (P.ParseStringError (loc, "Format is not followed by variable/expression. Missing %?"))
             | P.String s, None ->
                     None, E.String (s, loc)::acc
             | P.DollarChar, None ->
