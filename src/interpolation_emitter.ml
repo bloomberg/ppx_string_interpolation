@@ -33,6 +33,22 @@ let to_arguments tokens = List.rev @@ List.fold_left
         | _ -> acc
     ) [] tokens
 
+(* Check invalid format before composing whole string to report correct location. *)
+let verify_formats tokens =
+    let check fmt loc =
+        try
+            Printf.printf "FMT ++ %s ++\n" fmt;
+            let _ = CamlinternalFormat.fmt_ebb_of_string fmt in ()
+        with (Failure msg) -> Location.raise_errorf ~loc "%s" msg
+           | _ -> ()
+    in
+    List.iter (fun token ->
+        match token with
+        | Expression (_, Some (fmt, loc)) -> check fmt loc
+        | Variable (_, Some (fmt, loc)) -> check fmt loc
+        | _ -> ()
+        ) tokens
+
 (* Generate format string for sprintf from tokens. *)
 let to_format_string tokens =
     let joined = String.concat "" @@ List.rev @@ List.fold_left
@@ -45,10 +61,7 @@ let to_format_string tokens =
                 ) [] tokens in
     pexp_constant ~loc:Location.none (Pconst_string (joined, None))
 
-(* Convert list of expressions with formats to ast.
-   This function works for both format before value "%f$var" and
-   value before format "$var%f" (scala style).
-*)
+(* Convert list of expressions with formats to ast. *)
 let generate tokens =
     let sprintf = let open Longident in
         pexp_ident ~loc:Location.none
@@ -61,4 +74,5 @@ let generate tokens =
     | args -> apply sprintf @@ (Nolabel,format_string)::args
 
 let emit_ast tokens =
+    verify_formats tokens;
     List.map convert_commented_out tokens |> generate
