@@ -17,7 +17,7 @@ let expand ~(loc:Location.t) ~path:_ (expr:expression) : expression =
     let parsed = Interpolation_parser.Parser.from_string ~payload_loc:loc str in
     let intermediate = Interpolation_intermediate.parser_to_emitter parsed in
     let ast = Interpolation_emitter.emit_ast intermediate in
-    Pprintast.expression Format.std_formatter ast;
+(*    Pprintast.expression Format.std_formatter ast; (* debug printing of ast *)*)
     ast
 
 let extension = Extension.declare "string"
