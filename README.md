@@ -17,7 +17,7 @@ let name = "world" in
 Embedded expressions should be enclosed in parentheses:
 ```ocaml
 let hello = "Hello" and world = "world" in
-[%string {|$(hello ^ " " ^ world)!|}]
+[%string "$(hello ^ \" \" ^ world)!"]
 ```
 
 Non-string types

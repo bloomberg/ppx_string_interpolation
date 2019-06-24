@@ -5,7 +5,7 @@ let%test _ =
 
 let%test _ =
     let hello = "Hello" and world = "world" in
-    [%string {|$(hello ^ " " ^ world)!|}] = "Hello world!"
+    [%string "$(hello ^ \" \" ^ world)!"] = "Hello world!"
 
 let%test _ = let a = 1 and b = 1.0 in
     [%string {|We know, that %d$a == %f$b is %b$(a = int_of_float b)!|}] = "We know, that 1 == 1.000000 is true!"
