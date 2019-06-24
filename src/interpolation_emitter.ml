@@ -26,12 +26,23 @@ let convert_commented_out = function
   | x -> x
 
 (* Generate a list of sprintf arguments from tokens. *)
-let to_arguments tokens = List.rev @@ List.fold_left
-    (fun acc token -> match token with
-        | Expression ((e, _), _) -> (Nolabel, Parse.expression (Lexing.from_string e))::acc
-        | Variable ((v, loc), _) -> (Nolabel, pexp_ident ~loc {txt = Lident v; loc})::acc
-        | _ -> acc
-    ) [] tokens
+let to_arguments tokens =
+    let shift by ({Location.loc_start; _} as loc) =
+        {loc with
+            Location.loc_start = {loc_start with
+                Lexing.pos_cnum = loc_start.pos_cnum + by}}
+    in
+    List.rev @@ List.fold_left
+        (fun acc token -> match token with
+            | Expression ((e, loc), _) -> (let lexbuf = (Lexing.from_string e) in
+                    let open Lexing in let open Location in
+                    lexbuf.lex_curr_p  <- loc.loc_start;
+                    lexbuf.lex_abs_pos <- loc.loc_start.pos_cnum + 1;
+                    (Nolabel, Parse.expression lexbuf)::acc)
+            | Variable ((v, loc), _) -> let loc = shift 1 loc in
+                    (Nolabel, pexp_ident ~loc {txt = Lident v; loc})::acc
+            | _ -> acc
+        ) [] tokens
 
 (* Check invalid format before composing whole string to report correct location. *)
 let verify_formats tokens =

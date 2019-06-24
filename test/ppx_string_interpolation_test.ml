@@ -18,7 +18,7 @@ let%test _ = [%string "Hello!"] = "Hello!"
 let%test _ = [%string {|Hello!$("1")|}] = "Hello!1"
 
 let%test _ = let l = "l" in
-    [%string {|A $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l|}] = 
+    [%string {|A $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l|}] =
     "A l l l l l l l l l l l l l l l l l l l l l l l l l l"
 
 let%test _ = let l = "*" in
