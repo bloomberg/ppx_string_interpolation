@@ -2,7 +2,7 @@
   (name ppx_string_interpolation)
   (public_name ppx_string_interpolation)
   (kind ppx_rewriter)
-  (libraries ppxlib compiler-libs sedlex)
+  (libraries ppxlib sedlex)
   (preprocess (pps sedlex.ppx)))
 
 (env
