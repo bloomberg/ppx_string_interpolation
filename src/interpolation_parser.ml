@@ -14,16 +14,11 @@ let token_to_string = function String s     -> s
 
 let print_tokens tokens = List.iter (fun (p, _) -> print_string (token_to_string p)) tokens
 
-exception ParseStringError of Location.t*string
-
-let raise_error lexbuf msg =
-    let (loc_start, loc_end) = Sedlexing.lexing_positions lexbuf in
-    raise (ParseStringError (Location.{loc_start; loc_end; loc_ghost = false}, msg))
-
 module Parser = struct
 
 (** Parse string, producing a list of tokens from this module. *)
 let from_string ~(payload_loc:Location.t) (str:string) =
+(*    Location.raise_errorf ~loc:payload_loc "----------------"; *)
     let lexbuf = Sedlexing.Utf8.from_string str in
 
     let loc (lexbuf : Sedlexing.lexbuf) =
@@ -40,6 +35,7 @@ let from_string ~(payload_loc:Location.t) (str:string) =
             loc_ghost = false;
         }
     in
+    let raise_error lexbuf msg = Location.raise_errorf ~loc:(loc lexbuf) msg in
 
     let remove_head_char str = String.sub str 1 (String.length str - 1) in
 
@@ -70,8 +66,8 @@ let from_string ~(payload_loc:Location.t) (str:string) =
         | eof -> acc
 
         | "$", (Compl '$') -> raise_error lexbuf "Invalid character after $. Second $ is missing?"
-        | "%$" -> raise_error lexbuf "Empty format. Another % is missing?"
-        | '%' -> raise_error lexbuf "Single %. Another % is missing?"
+        | "%$" -> raise_error lexbuf "Empty format. Another %% is missing?"
+        | '%' -> raise_error lexbuf "Single %%. Another %% is missing?"
         | '$' -> raise_error lexbuf "Single $. Another $ is missing?"
         | _ -> raise_error lexbuf "Internal error in 'string_to_tokens'"
     in

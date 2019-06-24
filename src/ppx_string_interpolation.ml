@@ -15,14 +15,11 @@ let expand ~(loc:Location.t) ~path:_ (expr:expression) : expression =
       str, adjust (String.length x + 2) expr.pexp_loc
     | _ -> Location.raise_errorf ~loc "Expecting string payload"
   in
-  try
-    let parsed = Interpolation_parser.Parser.from_string ~payload_loc:loc str in
-    let intermediate = Interpolation_intermediate.parser_to_emitter parsed in
-    let ast = Interpolation_emitter.emit_ast intermediate in
-    Pprintast.expression Format.std_formatter ast;
-    ast
-  with Interpolation_parser.ParseStringError (loc, msg) ->
-          Location.raise_errorf ~loc "Error happened"
+  let parsed = Interpolation_parser.Parser.from_string ~payload_loc:loc str in
+  let intermediate = Interpolation_intermediate.parser_to_emitter parsed in
+  let ast = Interpolation_emitter.emit_ast intermediate in
+  Pprintast.expression Format.std_formatter ast;
+  ast
 
 let extension = Extension.declare "string"
                     Extension.Context.Expression
