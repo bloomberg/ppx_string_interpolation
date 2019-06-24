@@ -1,6 +1,8 @@
 let%test _ = "HI" = "HI"
 
-let%test _ = [%string {|Hello!%d$(1)|}] = "Hello!1"
+let%test _ = [%string "Hello!6"] = "Hello!6"
+
+let%test _ = [%string {j|Hello!%d$(1)|j}] = "Hello!1"
 
 let%test _ = "Hello!" ^ "1" = "Hello!1"
 
