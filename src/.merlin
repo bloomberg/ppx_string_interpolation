@@ -11,8 +11,6 @@ B /home/oug/.opam/ocaml-base-compiler/lib/ocaml/compiler-libs
 B /home/oug/.opam/ocaml-base-compiler/lib/ppx_derivers
 B /home/oug/.opam/ocaml-base-compiler/lib/ppxlib
 B /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/ast
-B /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/metaquot
-B /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/metaquot_lifters
 B /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/print_diff
 B /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/traverse_builtins
 B /home/oug/.opam/ocaml-base-compiler/lib/result
@@ -33,8 +31,6 @@ S /home/oug/.opam/ocaml-base-compiler/lib/ocaml/compiler-libs
 S /home/oug/.opam/ocaml-base-compiler/lib/ppx_derivers
 S /home/oug/.opam/ocaml-base-compiler/lib/ppxlib
 S /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/ast
-S /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/metaquot
-S /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/metaquot_lifters
 S /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/print_diff
 S /home/oug/.opam/ocaml-base-compiler/lib/ppxlib/traverse_builtins
 S /home/oug/.opam/ocaml-base-compiler/lib/result
@@ -43,5 +39,5 @@ S /home/oug/.opam/ocaml-base-compiler/lib/sexplib0
 S /home/oug/.opam/ocaml-base-compiler/lib/stdio
 S /home/oug/.opam/ocaml-base-compiler/lib/uchar
 S .
-FLG -ppx '/home/oug/ppx_string_interpolation/_build/default/.ppx/d812a288b5dce14b3bcc3f852aca2aa1/ppx.exe --as-ppx --cookie '\''library-name="ppx_string_interpolation"'\'''
+FLG -ppx '/home/oug/ppx_string_interpolation/_build/default/.ppx/47692aba660b9b6d52b3643959b707ed/ppx.exe --as-ppx --cookie '\''library-name="ppx_string_interpolation"'\'''
 FLG -open Ppx_string_interpolation__ -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A
