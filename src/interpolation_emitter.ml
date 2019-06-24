@@ -29,7 +29,7 @@ let convert_commented_out = function
 let to_arguments tokens = List.rev @@ List.fold_left
     (fun acc token -> match token with
         | Expression ((e, _), _) -> (Nolabel, Parse.expression (Lexing.from_string e))::acc
-        | Variable ((v, _), _) -> (Nolabel, Parse.expression (Lexing.from_string v))::acc
+        | Variable ((v, loc), _) -> (Nolabel, pexp_ident ~loc {txt = Lident v; loc})::acc
         | _ -> acc
     ) [] tokens
 
@@ -37,7 +37,6 @@ let to_arguments tokens = List.rev @@ List.fold_left
 let verify_formats tokens =
     let check fmt loc =
         try
-            Printf.printf "FMT ++ %s ++\n" fmt;
             let _ = CamlinternalFormat.fmt_ebb_of_string fmt in ()
         with (Failure msg) -> Location.raise_errorf ~loc "%s" msg
            | _ -> ()
