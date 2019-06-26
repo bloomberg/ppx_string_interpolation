@@ -18,16 +18,11 @@ module Parser = struct
 
 (** Parse string, producing a list of tokens from this module. *)
 let from_string ~(payload_loc:Location.t) (str:string) =
-(*    Location.raise_errorf ~loc:payload_loc "----------------"; *)
     let lexbuf = Sedlexing.Utf8.from_string str in
+    Sedlexing.set_position lexbuf payload_loc.loc_start;
 
     let loc (lexbuf : Sedlexing.lexbuf) =
-        let adjust base rel =
-            Lexing.{ pos_fname = base.pos_fname;
-                     pos_lnum = base.pos_lnum + rel.pos_lnum;
-                     pos_bol = base.pos_bol + rel.pos_bol;
-                     pos_cnum = base.pos_cnum + rel.pos_cnum; }
-        in
+        let adjust base rel = Lexing.{ rel with pos_fname = base.pos_fname } in
         let (loc_start, loc_end) = Sedlexing.lexing_positions lexbuf in
         Location.{
             loc_start = adjust payload_loc.loc_start loc_start;
