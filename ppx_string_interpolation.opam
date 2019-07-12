@@ -15,5 +15,6 @@ build: [
 depends: [
   "dune" {build}
   "ppxlib" {build}
+  "sedlex" {build}
 ]
 available: [ ocaml-version >= "4.03.0" ]
