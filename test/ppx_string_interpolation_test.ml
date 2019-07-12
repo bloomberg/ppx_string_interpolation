@@ -1,3 +1,4 @@
+(*
 (* Examples from README.md *)
 let%test _ =
     let name = "world" in
@@ -31,3 +32,8 @@ let%test _ = let l = "l" in
 
 let%test _ = let l = "*" in
     [%string {|$("(" ^ l ^ (* HI *) ")")|}] = "(*)"
+*)
+let () =
+    let open OUnit2 in
+    let suite = "tests">:::[] in
+    run_test_tt_main suite

@@ -1,4 +1,6 @@
 _build
 *.install
 *.merlin
+src/.merlin
+test/.merlin
 _opam

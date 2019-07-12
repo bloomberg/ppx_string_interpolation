@@ -1,4 +1,4 @@
-(library
+(test
   (name ppx_string_interpolation_test)
-  (inline_tests)
+  (libraries oUnit)
   (preprocess (pps ppx_jane ppx_string_interpolation)))
