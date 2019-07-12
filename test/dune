@@ -1,4 +1,4 @@
 (test
   (name ppx_string_interpolation_test)
   (libraries oUnit)
-  (preprocess (pps ppx_jane ppx_string_interpolation)))
+  (preprocess (pps ppx_string_interpolation)))
