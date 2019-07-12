@@ -1,39 +1,57 @@
-(*
+open OUnit2
+
 (* Examples from README.md *)
-let%test _ =
+let readme_test1 _ =
     let name = "world" in
-    [%string "Hello $name!"] = "Hello world!"
+    assert_equal [%string "Hello $name!"] "Hello world!"
 
-let%test _ =
+let readme_test2 _ =
     let hello = "Hello" and world = "world" in
-    [%string "$(hello ^ \" \" ^ world)!"] = "Hello world!"
+    assert_equal [%string "$(hello ^ \" \" ^ world)!"] "Hello world!"
 
-let%test _ = let a = 1 and b = 1.0 in
-    [%string {|We know, that %d$a == %f$b is %b$(a = int_of_float b)!|}] = "We know, that 1 == 1.000000 is true!"
+let readme_test3 _ = let a = 1 and b = 1.0 in
+    assert_equal [%string {|We know, that %d$a == %f$b is %b$(a = int_of_float b)!|}]
+                 "We know, that 1 == 1.000000 is true!"
 
 (* Other tests *)
-let%test _ = [%string "Hello!"] = "Hello!"
+let test1 _ = assert_equal [%string "Hello!"] "Hello!"
 
-let%test _ = [%string {j|Hello!%d$(1)|j}] = "Hello!1"
+let test2 _ = assert_equal [%string {j|Hello!%d$(1)|j}] "Hello!1"
 
-let%test _ = "Hello!" ^ "1" = "Hello!1"
+let test3 _ = assert_equal ("Hello!" ^ "1") "Hello!1"
 
-let%test _ = [%string "Hello!%d$(1 + 2 + 3)"] = "Hello!6"
+let test4 _ = assert_equal [%string "Hello!%d$(1 + 2 + 3)"] "Hello!6"
 
-let%test _ = let name = "Me!" in [%string "Hello, my name is $name! Good bye, $name."] = "Hello, my name is Me!! Good bye, Me!."
+let test5 _ = let name = "Me!" in
+    assert_equal [%string "Hello, my name is $name! Good bye, $name."]
+                 "Hello, my name is Me!! Good bye, Me!."
 
-let%test _ = [%string "Hello!"] = "Hello!"
+let test6 _ = assert_equal [%string {key|Hello!|key}] "Hello!"
 
-let%test _ = [%string {|Hello!$("1")|}] = "Hello!1"
+let test7 _ = assert_equal [%string {|Hello!$("1")|}] "Hello!1"
 
-let%test _ = let l = "l" in
-    [%string {|A $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l|}] =
+let test8 _ = let l = "l" in
+    assert_equal
+    [%string {|A $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l $l|}]
     "A l l l l l l l l l l l l l l l l l l l l l l l l l l"
 
-let%test _ = let l = "*" in
-    [%string {|$("(" ^ l ^ (* HI *) ")")|}] = "(*)"
-*)
+let test9 _ = let l = "*" in
+    assert_equal [%string {|$("(" ^ l ^ (* HI *) ")")|}] "(*)"
+
 let () =
-    let open OUnit2 in
-    let suite = "tests">:::[] in
+    let suite = "tests">:::
+        [
+            "Test 1 from README">:: readme_test1;
+            "Test 2 from README">:: readme_test2;
+            "Test 3 from README">:: readme_test3;
+            "Test1 ">:: test1;
+            "Test2 ">:: test2;
+            "Test3 ">:: test3;
+            "Test4 ">:: test4;
+            "Test5 ">:: test5;
+            "Test6 ">:: test6;
+            "Test7 ">:: test7;
+            "Test8 ">:: test8;
+            "Test9 ">:: test9
+        ] in
     run_test_tt_main suite
