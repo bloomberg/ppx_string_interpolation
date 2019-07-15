@@ -1,11 +1,15 @@
 opam-version: "1.2"
-maintainer: "konstantinsromanov@gmail.com"
-authors: ["Konstantin Romanov"]
+name: "ppx_string_interpolation"
+synopsis: "String interpolation PPX preprocessor"
+description: "
+String interpolation PPX preprocessor.
+"
+maintainer: "Konstantin Romanov <konstantinsromanov@gmail.com>"
+authors: ["Konstantin Romanov <konstantinsromanov@gmail.com>"]
 homepage: "https://github.com/ksromanov/ppx_string_interpolation"
 bug-reports: "https://github.com/ksromanov/ppx_string_interpolation/issues"
 dev-repo: "git+https://github.com/ksromanov/ppx_string_interpolation.git"
 license: "Apache-2.0"
-description: "String interpolation PPX preprocessor"
 
 build: [
   ["dune" "subst"] {pinned}
