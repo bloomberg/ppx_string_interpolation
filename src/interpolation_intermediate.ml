@@ -20,5 +20,5 @@ let parser_to_emitter (tokens : (P.token*Location.t) list) : E.token list =
             | P.DollarChar, None ->
                     None, E.String ("$", loc)::acc
             | P.PercentChar, None ->
-                    None, E.String ("%%", loc)::acc
+                    None, E.String ("%", loc)::acc
         ) (None, []) tokens
