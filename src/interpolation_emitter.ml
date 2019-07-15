@@ -19,7 +19,7 @@ let convert_commented_out = function
         if String.length str >= 4 && String.get str 1 = '*' &&
                        String.get str (String.length str - 2) = '*' then
             match fmt with
-            | Some (fmt, _) -> String (fmt ^ "$" ^ str, loc)
+            | Some (fmt, _) -> String ("%" ^ fmt ^ "$" ^ str, loc)
             | None -> String ("$" ^ str, loc)
         else
             Expression ((str, loc), fmt)
