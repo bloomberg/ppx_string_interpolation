@@ -9,9 +9,17 @@ let readme_test2 _ =
     let hello = "Hello" and world = "world" in
     assert_equal [%string "$(hello ^ \" \" ^ world)!"] "Hello world!"
 
-let readme_test3 _ = let a = 1 and b = 1.0 in
+let readme_test3 _ =
+    assert_equal [%string "This is $$ and %%!"] "This is $ and %!"
+
+let readme_test4 _ = let a = 1 and b = 1.0 in
     assert_equal [%string {|We know, that %d$a == %f$b is %b$(a = int_of_float b)!|}]
                  "We know, that 1 == 1.000000 is true!"
+
+let readme_test5 _ =
+    assert_equal [%string "The first pythagorean triple: %d$(3), 4, %d$(*5?*)"]
+    "The first pythagorean triple: 3, 4, %d$(*5?*)"
+
 
 (* Other tests *)
 let test1 _ = assert_equal [%string "Hello!"] "Hello!"
@@ -44,6 +52,8 @@ let () =
             "Test 1 from README">:: readme_test1;
             "Test 2 from README">:: readme_test2;
             "Test 3 from README">:: readme_test3;
+            "Test 4 from README">:: readme_test4;
+            "Test 5 from README">:: readme_test5;
             "Test1 ">:: test1;
             "Test2 ">:: test2;
             "Test3 ">:: test3;
