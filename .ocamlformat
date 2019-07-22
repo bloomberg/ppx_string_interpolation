@@ -3,3 +3,4 @@ break-infix = fit-or-vertical
 let-binding-spacing = compact
 type-decl = compact
 break-cases = nested
+if-then-else = fit-or-vertical

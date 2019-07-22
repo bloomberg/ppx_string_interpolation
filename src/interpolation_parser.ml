@@ -47,9 +47,10 @@ module Parser = struct
       | Star (Compl ('(' | ')')), '(' ->
         parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) (level + 1) lexbuf
       | Star (Compl ('(' | ')')), ')' ->
-        if level > 1
-        then parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) (level - 1) lexbuf
-        else List.rev @@ (Sedlexing.Utf8.lexeme lexbuf :: acc)
+        if level > 1 then
+          parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) (level - 1) lexbuf
+        else
+          List.rev @@ (Sedlexing.Utf8.lexeme lexbuf :: acc)
       | _ ->
         raise_error lexbuf "Incomplete expression (unmatched parentheses)..."
     in

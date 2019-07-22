@@ -22,14 +22,14 @@ let print_tokens = List.iter (fun p -> print_string (token_to_string p))
    Here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
 let convert_commented_out = function
   | Expression ((str, loc), fmt) ->
-    if String.length str >= 4 && str.[1] = '*' && str.[String.length str - 2] = '*'
-    then (
+    if String.length str >= 4 && str.[1] = '*' && str.[String.length str - 2] = '*' then (
       match fmt with
       | Some (fmt, _) ->
         String ("%" ^ fmt ^ "$" ^ str, loc)
       | None ->
         String ("$" ^ str, loc))
-    else Expression ((str, loc), fmt)
+    else
+      Expression ((str, loc), fmt)
   | x ->
     x
 
