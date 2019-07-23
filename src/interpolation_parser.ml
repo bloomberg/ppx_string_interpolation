@@ -4,9 +4,7 @@ type token =
   | Expression of string (* Expression to interpolate; contains both '(' and ')' *)
   | Variable of string (* Name of variable, does not contain '(' and ')' *)
   | DollarChar (* Just a single '$' char, which comes from '$$' in raw string *)
-  | PercentChar
-
-(* Just a single '%' char, which comes from '%%' in raw string *)
+  | PercentChar (* Just a single '%' char, which comes from '%%' in raw string *)
 
 let token_to_string = function
   | String s ->
