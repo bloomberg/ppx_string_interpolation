@@ -39,19 +39,26 @@ module Parser = struct
     in
     let raise_error lexbuf msg = Location.raise_errorf ~loc:(loc lexbuf) msg in
     let remove_head_char str = String.sub str 1 (String.length str - 1) in
+
     (* TODO: take into account comments/strings of both syntaxes, which can contain parentheses! *)
-    let rec parse_expression acc level lexbuf =
-      match%sedlex lexbuf with
-      | Star (Compl ('(' | ')')), '(' ->
-        parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) (level + 1) lexbuf
-      | Star (Compl ('(' | ')')), ')' ->
-        if level > 1 then
-          parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) (level - 1) lexbuf
-        else
-          List.rev @@ (Sedlexing.Utf8.lexeme lexbuf :: acc)
-      | _ ->
-        raise_error lexbuf "Incomplete expression (unmatched parentheses)..."
+    (* [p_level] - the level of parentheses. We need to check for balancing.
+     * [c_level] - the level of comments. *)
+    let rec parse_expression acc ~p_level ~c_level lexbuf =
+      if c_level == 0 then
+        match%sedlex lexbuf with
+        | Star (Compl ('(' | ')')), '(' ->
+          parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) ~p_level:(p_level + 1) ~c_level:0 lexbuf
+        | Star (Compl ('(' | ')')), ')' ->
+          if p_level > 1 then
+            parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) ~p_level:(p_level - 1) ~c_level:0 lexbuf
+          else
+            List.rev @@ (Sedlexing.Utf8.lexeme lexbuf :: acc)
+        | _ ->
+          raise_error lexbuf "Incomplete expression (unmatched parentheses)..."
+      else
+        failwith "Unimplemented"
     in
+
     let rec parse acc lexbuf =
       let letter = [%sedlex.regexp? 'a' .. 'z' | 'A' .. 'Z'] in
       let ident = [%sedlex.regexp? (letter | '_'), Star (letter | '0' .. '9' | '_')] in
@@ -75,7 +82,7 @@ module Parser = struct
           lexbuf
       | "$(" ->
         parse
-          (( Expression (List.fold_left ( ^ ) "(" (parse_expression [] 1 lexbuf))
+          (( Expression (List.fold_left ( ^ ) "(" (parse_expression [] ~p_level:1 ~c_level:0 lexbuf))
            , loc lexbuf )
           :: acc)
           lexbuf
