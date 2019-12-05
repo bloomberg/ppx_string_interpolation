@@ -1,6 +1,4 @@
-# ppx_string_interpolation
-
-PPX rewriter that enables string interpolation.
+# PPX rewriter that enables string interpolation.
 
 ## Menu
 
@@ -28,13 +26,13 @@ the type of variables and expressions is assumed to be string
 by-default:
 ```ocaml
 let name = "world" in
-[%string "Hello $name!"]
+    [%string "Hello $name!"]
 ```
 
 Embedded expressions should be enclosed in parentheses:
 ```ocaml
 let hello = "Hello" and world = "world" in
-[%string "$(hello ^ \" \" ^ world)!"]
+    [%string "$(hello ^ \" \" ^ world)!"]
 ```
 
 ### Non-string types
