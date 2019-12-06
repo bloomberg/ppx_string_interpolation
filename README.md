@@ -15,7 +15,7 @@
 
 This PPX implements string interpolation with embedded expressions,
 thus enabling simple and powerful templates for code generation and
-pretty printing. In contrast to printf string interpolation does not
+pretty printing. In contrast to `printf`, string interpolation does not
 separate embedded variables and context, which is important for
 medium-size strings (several lines).
 
@@ -23,7 +23,7 @@ medium-size strings (several lines).
 
 Plugin uses bash-style syntax for string interpolation and
 the type of variables and expressions is assumed to be string
-by-default:
+by default:
 ```ocaml
 let name = "world" in
     [%string "Hello $name!"]
@@ -37,7 +37,7 @@ let hello = "Hello" and world = "world" in
 
 ### Non-string types
 
-Since PPX run before type inference and type checking, rewriter should
+Since this PPX run before type inference and type checking, rewriter should
 have the information about the types of embedded values via `Printf.printf`
 format specifiers:
 ```ocaml
@@ -47,12 +47,12 @@ let a = 1 and b = 1.0 in
 
 ### Advanced usage
 
-The extension is essentially a syntax sugar for `Printf.sprintf` function.
-The format assumed to be anything between `%` and next `$`. The expression
+The extension is essentially syntax sugar for the `Printf.sprintf` function.
+The format is assumed to be anything between `%` and the next `$`. The expression
 string is determined by searching for balanced parentheses.
 
-Both `$` and `%` symbols are escaped, i.e. double `%` and
-double `$` result in single character:
+Both `$` and `%` symbols can be escaped, i.e. double `%` and
+double `$` result in single characters:
 
 ```ocaml
 [%string "This is $$ and %%!"] = "This is $ and %!"
@@ -68,11 +68,11 @@ without checking for the type of the format:
 
 ## Building
 
-To build project use `dune build`.
+To build the project use `dune build`.
 
 ## Installation
 
-To install package run `dune install`.
+To install the package run `dune install`.
 
 ## Contributions
 
