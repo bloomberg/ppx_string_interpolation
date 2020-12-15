@@ -103,7 +103,7 @@ let to_format_string tokens =
          []
          tokens
   in
-  pexp_constant ~loc:Location.none (Pconst_string (joined, None))
+  pexp_constant ~loc:Location.none (Pconst_string (joined, Location.none, None))
 
 (* Convert list of expressions with formats to ast. *)
 let generate tokens =
