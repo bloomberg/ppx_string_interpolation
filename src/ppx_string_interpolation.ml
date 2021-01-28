@@ -11,9 +11,9 @@ let expand ~(loc : Location.t) ~path:_ (expr : expression) : expression =
       }
     in
     match expr.pexp_desc with
-    | Pexp_constant (Pconst_string (str, None)) ->
+    | Pexp_constant (Pconst_string (str, _, None)) ->
       str, adjust 1 expr.pexp_loc
-    | Pexp_constant (Pconst_string (str, Some x)) ->
+    | Pexp_constant (Pconst_string (str, _, Some x)) ->
       str, adjust (String.length x + 2) expr.pexp_loc
     | _ ->
       Location.raise_errorf ~loc "Expecting string payload"
