@@ -55,7 +55,7 @@ Both `$` and `%` symbols can be escaped, i.e. double `%` and
 double `$` result in single characters:
 
 ```ocaml
-[%string "This is $$ and %%!"] = "This is $ and %!"
+[%string "This is $$ and %%!"] = "This is $ and %!"]
 ```
 
 If the expression is commented out, the PPX dumps the comment with format,
@@ -63,7 +63,7 @@ without checking for the type of the format:
 
 ```ocaml
 [%string "The first pythagorean triple: %d$(3), 4, %d$(*5?*)"] =
-    "The first pythagorean triple: 3, 4, %d$(*5?*)"
+    "The first pythagorean triple: 3, 4, %d$(*5?*)"]
 ```
 
 ## Building
