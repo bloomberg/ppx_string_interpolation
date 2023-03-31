@@ -19,6 +19,11 @@ pretty printing. In contrast to `printf`, string interpolation does not
 separate embedded variables and context, which is important for
 medium-size strings (several lines).
 
+We tried our best to be compatible with future Compiler versions,
+so please do not be surprised if the package is not updated for
+a couple years — it works. Please feel free to file an ISSUE if
+the Compiler update breaks this PPX.
+
 ## Quick Start
 
 Plugin uses bash-style syntax for string interpolation and
@@ -55,7 +60,7 @@ Both `$` and `%` symbols can be escaped, i.e. double `%` and
 double `$` result in single characters:
 
 ```ocaml
-[%string "This is $$ and %%!"] = "This is $ and %!"]
+[%string "This is $$ and %%!"] = "This is $ and %!"
 ```
 
 If the expression is commented out, the PPX dumps the comment with format,
@@ -63,7 +68,7 @@ without checking for the type of the format:
 
 ```ocaml
 [%string "The first pythagorean triple: %d$(3), 4, %d$(*5?*)"] =
-    "The first pythagorean triple: 3, 4, %d$(*5?*)"]
+    "The first pythagorean triple: 3, 4, %d$(*5?*)"
 ```
 
 ## Building
