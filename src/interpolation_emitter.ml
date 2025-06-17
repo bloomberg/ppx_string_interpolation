@@ -5,6 +5,7 @@ type element = string * Location.t
 
 type token =
   | String of element
+  | EscapedPercent of Location.t
   | Expression of element * element option
   | Variable of element * element option
 
@@ -15,7 +16,9 @@ let token_to_string = function
     "{" ^ e ^ "}"
   | Variable ((v, _), _) ->
     "[" ^ v ^ "]"
+  | EscapedPercent _ -> "%"
 
+(* Debug printing of tokens. Compresses %% into % *)
 let print_tokens = List.iter (fun p -> print_string (token_to_string p))
 
 (* Convert commented out expression to a string.
@@ -82,8 +85,10 @@ let verify_formats tokens =
         ())
     tokens
 
-(* Generate format string for sprintf from tokens. *)
-let to_format_string tokens =
+(* Generate format string for sprintf from tokens. NOTE, we always manually compress "$$"
+   into "$" since [sprintf] does not treat is specially. However, "%%" is compressed into "%"
+   only if the string does not contain interpolations, and therefore [sprintf] call is not emitted. *)
+let to_format_string ~escape_percent tokens =
   let joined =
     String.concat ""
     @@ List.rev
@@ -99,7 +104,9 @@ let to_format_string tokens =
            | Variable (_, None) ->
              "%s" :: acc
            | String (s, _) ->
-             s :: acc)
+             s :: acc
+           | EscapedPercent _ when escape_percent -> "%%" :: acc
+           | EscapedPercent _ -> "%" :: acc)
          []
          tokens
   in
@@ -114,12 +121,10 @@ let generate tokens =
       { txt = Ldot (Lident "Printf", "sprintf"); loc = Location.none }
   in
   let apply func args = pexp_apply ~loc:Location.none func args in
-  let format_string = to_format_string tokens in
   match to_arguments tokens with
-  | [] ->
-    format_string
-  | args ->
-    apply sprintf @@ ((Nolabel, format_string) :: args)
+  | [] -> to_format_string ~escape_percent:false tokens
+  | args -> apply sprintf @@
+    ((Nolabel, to_format_string ~escape_percent:true tokens) :: args)
 
 let emit_ast tokens =
   verify_formats tokens;
