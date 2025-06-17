@@ -20,8 +20,8 @@ let parser_to_emitter (tokens : (P.token * Location.t) list) : E.token list =
          | P.String s, None ->
            None, E.String (s, loc) :: acc
          | P.DollarChar, None ->
-           None, E.String ("$", loc) :: acc
+           None, E.SpecialChar (E.Dollar, loc) :: acc
          | P.PercentChar, None ->
-           None, E.String ("%", loc) :: acc)
+           None, E.SpecialChar (E.Percent, loc) :: acc)
        (None, [])
        tokens

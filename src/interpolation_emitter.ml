@@ -2,21 +2,28 @@ open Ppxlib
 open Ppxlib.Ast_builder.Default
 
 type element = string * Location.t
+type special_char = Dollar | Percent
 
 type token =
   | String of element
+  | SpecialChar of (special_char * Location.t)
   | Expression of element * element option
   | Variable of element * element option
 
-let token_to_string = function
+let token_to_string escape_special_chars = function
   | String (s, _) ->
     s
   | Expression ((e, _), _) ->
     "{" ^ e ^ "}"
   | Variable ((v, _), _) ->
     "[" ^ v ^ "]"
+  | SpecialChar (Dollar,  _) ->
+    if escape_special_chars then "$$" else "$"
+  | SpecialChar (Percent, _) ->
+    if escape_special_chars then "%%" else "%"
 
-let print_tokens = List.iter (fun p -> print_string (token_to_string p))
+let print_tokens ~escape_special_chars =
+  List.iter (fun p -> print_string (token_to_string escape_special_chars p))
 
 (* Convert commented out expression to a string.
    Here we also rely on UTF8/single codepage - '(','*' and ')' occupy only one byte. *)
@@ -82,8 +89,9 @@ let verify_formats tokens =
         ())
     tokens
 
-(* Generate format string for sprintf from tokens. *)
-let to_format_string tokens =
+(* Generate format string for sprintf from tokens. NOTE, iff the string does not contain interpolations,
+   we are not emitting sprintf call therefore we have to unescape %% and $$! *)
+let to_format_string ~escape_special_chars tokens =
   let joined =
     String.concat ""
     @@ List.rev
@@ -99,7 +107,9 @@ let to_format_string tokens =
            | Variable (_, None) ->
              "%s" :: acc
            | String (s, _) ->
-             s :: acc)
+             s :: acc
+           | SpecialChar _ ->
+             token_to_string escape_special_chars token :: acc)
          []
          tokens
   in
@@ -114,12 +124,10 @@ let generate tokens =
       { txt = Ldot (Lident "Printf", "sprintf"); loc = Location.none }
   in
   let apply func args = pexp_apply ~loc:Location.none func args in
-  let format_string = to_format_string tokens in
   match to_arguments tokens with
-  | [] ->
-    format_string
-  | args ->
-    apply sprintf @@ ((Nolabel, format_string) :: args)
+  | [] -> to_format_string ~escape_special_chars:false tokens
+  | args -> apply sprintf @@
+    ((Nolabel, to_format_string ~escape_special_chars:true tokens) :: args)
 
 let emit_ast tokens =
   verify_formats tokens;
