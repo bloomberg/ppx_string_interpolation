@@ -51,7 +51,6 @@ let test9 _ =
   assert_equal [%string {|$("(" ^ l ^ (* HI *) ")")|}] "(*)"
 
 let test10 _ = assert_equal [%string "Hello!%d$(1 + 2 + 3) and %%"] "Hello!6 and %"
-
 let test11 _ = assert_equal [%string "Hello!%d$(1 + 2 + 3) and $$"] "Hello!6 and $"
 
 let () =

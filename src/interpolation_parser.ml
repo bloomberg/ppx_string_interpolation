@@ -1,6 +1,7 @@
 type token =
   | String of string (* Plain string, does not start with % and contain $ *)
-  | Format of string (* String, which starts with % and is treated as prinf-like format string *)
+  | Format of
+      string (* String, which starts with % and is treated as prinf-like format string *)
   | Expression of string (* Expression to interpolate; contains both '(' and ')' *)
   | Variable of string (* Name of variable, does not contain '(' and ')' *)
   | DollarChar (* Just a single '$' char, which comes from '$$' in raw string *)
@@ -39,26 +40,32 @@ module Parser = struct
     in
     let raise_error lexbuf msg = Location.raise_errorf ~loc:(loc lexbuf) msg in
     let remove_head_char str = String.sub str 1 (String.length str - 1) in
-
     (* TODO: take into account comments/strings of both syntaxes, which can contain parentheses! *)
     (* [p_level] - the level of parentheses. We need to check for balancing.
      * [c_level] - the level of comments. *)
     let rec parse_expression acc ~p_level ~c_level lexbuf =
-      if c_level == 0 then
+      if c_level == 0 then (
         match%sedlex lexbuf with
         | Star (Compl ('(' | ')')), '(' ->
-          parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) ~p_level:(p_level + 1) ~c_level:0 lexbuf
+          parse_expression
+            (Sedlexing.Utf8.lexeme lexbuf :: acc)
+            ~p_level:(p_level + 1)
+            ~c_level:0
+            lexbuf
         | Star (Compl ('(' | ')')), ')' ->
           if p_level > 1 then
-            parse_expression (Sedlexing.Utf8.lexeme lexbuf :: acc) ~p_level:(p_level - 1) ~c_level:0 lexbuf
+            parse_expression
+              (Sedlexing.Utf8.lexeme lexbuf :: acc)
+              ~p_level:(p_level - 1)
+              ~c_level:0
+              lexbuf
           else
             List.rev @@ (Sedlexing.Utf8.lexeme lexbuf :: acc)
         | _ ->
-          raise_error lexbuf "Incomplete expression (unmatched parentheses)..."
+          raise_error lexbuf "Incomplete expression (unmatched parentheses)...")
       else
         failwith "Unimplemented"
     in
-
     let rec parse acc lexbuf =
       let letter = [%sedlex.regexp? 'a' .. 'z' | 'A' .. 'Z'] in
       let ident = [%sedlex.regexp? (letter | '_'), Star (letter | '0' .. '9' | '_')] in
@@ -78,13 +85,17 @@ module Parser = struct
       | "$", longVarIdent ->
         parse
           ((Variable (remove_head_char @@ Sedlexing.Utf8.lexeme lexbuf), loc lexbuf)
-          :: acc)
+           :: acc)
           lexbuf
       | "$(" ->
         parse
-          (( Expression (List.fold_left ( ^ ) "(" (parse_expression [] ~p_level:1 ~c_level:0 lexbuf))
+          (( Expression
+               (List.fold_left
+                  ( ^ )
+                  "("
+                  (parse_expression [] ~p_level:1 ~c_level:0 lexbuf))
            , loc lexbuf )
-          :: acc)
+           :: acc)
           lexbuf
       | eof ->
         acc
