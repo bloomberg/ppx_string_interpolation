@@ -5,6 +5,7 @@ type element = string * Location.t
 
 type token =
   | String of element
+  | EscapedPercent of Location.t
   | Expression of element * element option
   | Variable of element * element option
 
@@ -15,7 +16,10 @@ let token_to_string = function
     "{" ^ e ^ "}"
   | Variable ((v, _), _) ->
     "[" ^ v ^ "]"
+  | EscapedPercent _ ->
+    "%"
 
+(* Debug printing of tokens. Compresses %% into % *)
 let print_tokens = List.iter (fun p -> print_string (token_to_string p))
 
 (* Convert commented out expression to a string.
@@ -43,19 +47,19 @@ let to_arguments tokens =
   List.rev
   @@ List.fold_left
        (fun acc token ->
-         match token with
-         | Expression ((e, loc), _) ->
-           let lexbuf = Lexing.from_string e in
-           let open Lexing in
-           let open Location in
-           lexbuf.lex_curr_p <- loc.loc_start;
-           lexbuf.lex_abs_pos <- loc.loc_start.pos_cnum + 1;
-           (Nolabel, Parse.expression lexbuf) :: acc
-         | Variable ((v, loc), _) ->
-           let loc = shift 1 loc in
-           (Nolabel, pexp_ident ~loc { txt = Lident v; loc }) :: acc
-         | _ ->
-           acc)
+          match token with
+          | Expression ((e, loc), _) ->
+            let lexbuf = Lexing.from_string e in
+            let open Lexing in
+            let open Location in
+            lexbuf.lex_curr_p <- loc.loc_start;
+            lexbuf.lex_abs_pos <- loc.loc_start.pos_cnum + 1;
+            (Nolabel, Parse.expression lexbuf) :: acc
+          | Variable ((v, loc), _) ->
+            let loc = shift 1 loc in
+            (Nolabel, pexp_ident ~loc { txt = Lident v; loc }) :: acc
+          | _ ->
+            acc)
        []
        tokens
 
@@ -73,33 +77,39 @@ let verify_formats tokens =
   in
   List.iter
     (fun token ->
-      match token with
-      | Expression (_, Some (fmt, loc)) ->
-        check fmt loc
-      | Variable (_, Some (fmt, loc)) ->
-        check fmt loc
-      | _ ->
-        ())
+       match token with
+       | Expression (_, Some (fmt, loc)) ->
+         check fmt loc
+       | Variable (_, Some (fmt, loc)) ->
+         check fmt loc
+       | _ ->
+         ())
     tokens
 
-(* Generate format string for sprintf from tokens. *)
-let to_format_string tokens =
+(* Generate format string for sprintf from tokens. NOTE, we always manually compress "$$"
+   into "$" since [sprintf] does not treat is specially. However, "%%" is compressed into "%"
+   only if the string does not contain interpolations, and therefore [sprintf] call is not emitted. *)
+let to_format_string ~escape_percent tokens =
   let joined =
     String.concat ""
     @@ List.rev
     @@ List.fold_left
          (fun acc token ->
-           match token with
-           | Expression (_, Some (fmt, _)) ->
-             fmt :: acc
-           | Expression (_, None) ->
-             "%s" :: acc
-           | Variable (_, Some (fmt, _)) ->
-             fmt :: acc
-           | Variable (_, None) ->
-             "%s" :: acc
-           | String (s, _) ->
-             s :: acc)
+            match token with
+            | Expression (_, Some (fmt, _)) ->
+              fmt :: acc
+            | Expression (_, None) ->
+              "%s" :: acc
+            | Variable (_, Some (fmt, _)) ->
+              fmt :: acc
+            | Variable (_, None) ->
+              "%s" :: acc
+            | String (s, _) ->
+              s :: acc
+            | EscapedPercent _ when escape_percent ->
+              "%%" :: acc
+            | EscapedPercent _ ->
+              "%" :: acc)
          []
          tokens
   in
@@ -114,12 +124,11 @@ let generate tokens =
       { txt = Ldot (Lident "Printf", "sprintf"); loc = Location.none }
   in
   let apply func args = pexp_apply ~loc:Location.none func args in
-  let format_string = to_format_string tokens in
   match to_arguments tokens with
   | [] ->
-    format_string
+    to_format_string ~escape_percent:false tokens
   | args ->
-    apply sprintf @@ ((Nolabel, format_string) :: args)
+    apply sprintf @@ ((Nolabel, to_format_string ~escape_percent:true tokens) :: args)
 
 let emit_ast tokens =
   verify_formats tokens;

@@ -50,6 +50,9 @@ let test9 _ =
   let l = "*" in
   assert_equal [%string {|$("(" ^ l ^ (* HI *) ")")|}] "(*)"
 
+let test10 _ = assert_equal [%string "Hello!%d$(1 + 2 + 3) and %%"] "Hello!6 and %"
+let test11 _ = assert_equal [%string "Hello!%d$(1 + 2 + 3) and $$"] "Hello!6 and $"
+
 let () =
   let suite =
     "tests"
@@ -67,6 +70,8 @@ let () =
          ; "Test7 " >:: test7
          ; "Test8 " >:: test8
          ; "Test9 " >:: test9
+         ; "Test10 " >:: test10
+         ; "Test11 " >:: test11
          ]
   in
   run_test_tt_main suite
