@@ -1,5 +1,12 @@
 (test
  (name ppx_string_interpolation_test)
+ (modules ppx_string_interpolation_test)
  (libraries oUnit)
  (preprocess
   (pps ppx_string_interpolation)))
+
+(test
+ (name ppx_string_interpolation_errors_test)
+ (modules ppx_string_interpolation_errors_test)
+ (libraries oUnit ppxlib ppx_string_interpolation)
+ (link_flags (-linkall)))
