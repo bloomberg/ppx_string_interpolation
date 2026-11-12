@@ -14,13 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-        ocaml-compiler:
-          - "4.11"
-          - "4.14"
-          - "5"
         include:
+          # OCaml 4.11 does not build with GCC 15 (C23 by default) on newer Ubuntu.
+          - os: ubuntu-24.04
+            ocaml-compiler: "4.11"
+          - os: ubuntu-latest
+            ocaml-compiler: "4.14"
+          - os: ubuntu-latest
+            ocaml-compiler: "5"
           - os: macos-latest
             ocaml-compiler: "5"
 
