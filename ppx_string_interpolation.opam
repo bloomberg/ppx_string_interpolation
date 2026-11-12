@@ -14,11 +14,13 @@ license: "Apache-2.0"
 build: [
   ["dune" "subst"] {dev}
   ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
 
 depends: [
   "dune" {>= "1.7"}
-  "ocaml" {>= "4.04.1"}
+  "ocaml" {>= "4.11.0"}
   "ppxlib" {>= "0.18.0"}
   "sedlex"
+  "ounit" {with-test}
 ]
